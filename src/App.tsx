@@ -1,10 +1,21 @@
 import React, { useEffect, useState } from "react";
-import logo from "./logo.svg";
+import Editor from "react-simple-code-editor";
+import { highlight, languages } from "./prism/prism";
+import { resolve_module_from_js } from "./lib";
+import "./prism/prism.css";
 import "./App.css";
 
-const compiler = import("./compiler");
+const EXAMPLE = `runtime module playground
+
+expose hello
+
+fun hello(): i32 {
+  return 42
+}
+`;
 
 function App() {
+  const [code, setCode] = useState(EXAMPLE);
   const [compiler, setCompiler] = useState<
     null | typeof import("./compiler")
   >();
@@ -13,27 +24,26 @@ function App() {
     import("./compiler")
       .then((compiler) => {
         setCompiler(compiler);
-        compiler.greet();
+        compiler.compile();
+        // compiler.greet();
       })
       .catch((err) => console.log(err));
   }, []);
 
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>Zephyr playground</h1>
+      <Editor
+        value={code}
+        onValueChange={(code) => setCode(code)}
+        highlight={(code) => highlight(code, (languages as any).zph)}
+        padding={10}
+        style={{
+          fontFamily: '"Fira code", "Fira Mono", monospace',
+          fontSize: 16,
+        }}
+        className="Editor"
+      />
     </div>
   );
 }
