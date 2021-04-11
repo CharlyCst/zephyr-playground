@@ -1,7 +1,9 @@
+use js_sys;
+use js_sys::Reflect;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 use zephyr::error::{ErrorHandler, Level, Location};
-use zephyr::resolver::{FileId, ModuleKind, ModulePath, PreparedFile, Resolver};
+use zephyr::resolver::{FileId, FileKind, ModuleKind, ModulePath, PreparedFile, Resolver};
 use zephyr::Ctx;
 
 mod utils;
@@ -14,43 +16,105 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
 extern "C" {
-    fn alert(s: &str);
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
 }
 
 #[wasm_bindgen(raw_module = "../lib")]
 extern "C" {
-    fn resolve_module_from_js(root: &str, path: &str) -> Option<String>;
-}
-
-#[wasm_bindgen]
-pub fn greet() {
-    alert("Hello, compiler!");
+    fn resolve_module_from_js(root: &str, path: &str) -> Option<js_sys::Array>;
 }
 
 #[wasm_bindgen]
 pub fn compile() {
     let mut ctx = Ctx::new();
     let mut err = JsHandler::new_no_file();
-    let resolver = JsResolver {};
+    let resolver = JsResolver::new();
     let module = ModulePath {
         root: String::from("playground"),
         path: vec![String::from("main")],
     };
-    ctx.add_module(module, &mut err, &resolver);
+    log("Adding module to be compiled");
+    if let Err(_) = ctx.add_module(module, &mut err, &resolver) {
+        log("Failed adding module");
+    }
+}
+
+/// Handles to properties of JS source file objects
+pub struct SourceFileProperty {
+    code: JsValue,
+    file_name: JsValue,
+    file_id: JsValue,
+    is_asm: JsValue,
+}
+
+impl SourceFileProperty {
+    fn new() -> Self {
+        Self {
+            code: JsValue::from_str("code"),
+            file_name: JsValue::from_str("fileName"),
+            file_id: JsValue::from_str("fileId"),
+            is_asm: JsValue::from_str("isAsm"),
+        }
+    }
+
+    fn load_js_file(&self, object: &JsValue) -> Result<PreparedFile, ()> {
+        // Get back values
+        let code = Reflect::get(object, &self.code).map_err(|_| ())?;
+        let file_name = Reflect::get(object, &self.file_name).map_err(|_| ())?;
+        let is_asm = Reflect::get(object, &self.is_asm).map_err(|_| ())?;
+        let file_id = Reflect::get(object, &self.file_id).map_err(|_| ())?;
+
+        // Validate types
+        let code = code.as_string().ok_or(())?;
+        let file_name = file_name.as_string().ok_or(())?;
+        let is_asm = is_asm.as_bool().ok_or(())?;
+        let file_id = file_id.as_f64().ok_or(())?;
+        let file_id = file_id.round() as u16;
+        let kind = if is_asm {
+            FileKind::Asm
+        } else {
+            FileKind::Zephyr
+        };
+        Ok(PreparedFile {
+            code,
+            file_name,
+            kind,
+            f_id: FileId(file_id),
+        })
+    }
 }
 
 #[wasm_bindgen]
-pub struct JsResolver {}
+pub struct JsResolver {
+    file_properties: SourceFileProperty,
+}
+
+impl JsResolver {
+    fn new() -> Self {
+        Self {
+            file_properties: SourceFileProperty::new(),
+        }
+    }
+}
 
 impl Resolver for JsResolver {
     fn resolve_module(
         &self,
         module: &ModulePath,
-        err: &mut impl ErrorHandler,
+        _err: &mut impl ErrorHandler,
     ) -> Result<(Vec<PreparedFile>, ModuleKind), ()> {
         let path = module.path.join("/");
-        resolve_module_from_js(&module.root, &path);
-        Err(())
+        let mut prepared_files = Vec::new();
+        let files = resolve_module_from_js(&module.root, &path);
+        if let Some(files) = files {
+            for js_object in files.iter() {
+                prepared_files.push(self.file_properties.load_js_file(&js_object)?);
+            }
+            Ok((prepared_files, ModuleKind::Standard))
+        } else {
+            Err(())
+        }
     }
 }
 
@@ -98,8 +162,8 @@ impl ErrorHandler for JsHandler {
     }
 
     /// Log an error encountered during the compilation.
-    fn log(&mut self, message: String, level: Level, loc: Option<Location>) {
+    fn log(&mut self, message: String, _level: Level, _loc: Option<Location>) {
         self.has_error = true;
-        // TODO: log something ^^'
+        log(&message);
     }
 }
