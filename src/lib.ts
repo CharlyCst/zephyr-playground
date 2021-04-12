@@ -1,7 +1,33 @@
 import { modules } from "./zephyr";
+import { code_ref } from "./App";
 
-export const resolve_module_from_js = (root: string, path: string) => {
+interface IJsModule {
+  files: IJsFile[];
+  isStandalone: boolean;
+}
+
+interface IJsFile {
+  code: string;
+  fileName: string;
+  fileId: number;
+  isAsm: boolean;
+}
+
+export function resolve_module_from_js(
+  root: string,
+  path: string
+): IJsModule | undefined {
   console.log(`Resolve ${root}/${path}`);
+
+  // Base case
+  if (root === "playground" && path === "main") {
+    return {
+      files: [{ code: code_ref, fileName: "main", fileId: 1, isAsm: false }],
+      isStandalone: false,
+    };
+  }
+
+  // Standard & Core library
   const items = path.split("/");
   const last = items.pop();
   if (last === undefined) {
@@ -20,8 +46,10 @@ export const resolve_module_from_js = (root: string, path: string) => {
   }
 
   const files = [];
+  let isStandalone = false;
   if (folder.files[last] !== undefined) {
     files.push(folder.files[last]);
+    isStandalone = true;
   } else {
     folder = folder.folders[last];
     if (folder === undefined) {
@@ -32,6 +60,5 @@ export const resolve_module_from_js = (root: string, path: string) => {
     }
   }
 
-  console.log(files);
-  return files;
-};
+  return { files: files, isStandalone: isStandalone };
+}

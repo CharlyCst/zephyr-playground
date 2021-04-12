@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Editor from "react-simple-code-editor";
 import { highlight, languages } from "./prism/prism";
-import { resolve_module_from_js } from "./lib";
 import "./prism/prism.css";
 import "./App.css";
 
@@ -13,6 +12,8 @@ fun hello(): i32 {
   return 42
 }
 `;
+
+export let code_ref = EXAMPLE;
 
 function App() {
   const [code, setCode] = useState(EXAMPLE);
@@ -35,7 +36,10 @@ function App() {
       <h1>Zephyr playground</h1>
       <Editor
         value={code}
-        onValueChange={(code) => setCode(code)}
+        onValueChange={(code) => {
+          setCode(code);
+          code_ref = code;
+        }}
         highlight={(code) => highlight(code, (languages as any).zph)}
         padding={10}
         style={{

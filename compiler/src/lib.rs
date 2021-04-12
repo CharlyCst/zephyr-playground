@@ -22,7 +22,7 @@ extern "C" {
 
 #[wasm_bindgen(raw_module = "../lib")]
 extern "C" {
-    fn resolve_module_from_js(root: &str, path: &str) -> Option<js_sys::Array>;
+    fn resolve_module_from_js(root: &str, path: &str) -> JsValue;
 }
 
 #[wasm_bindgen]
@@ -38,6 +38,10 @@ pub fn compile() {
     if let Err(_) = ctx.add_module(module, &mut err, &resolver) {
         log("Failed adding module");
     }
+    match ctx.get_wasm(&mut err, &resolver) {
+        Err(_) => log("Failed compiling to wasm"),
+        Ok(wasm) => log(&format!("Produced {} bytes of wasm", wasm.len())),
+    }
 }
 
 /// Handles to properties of JS source file objects
@@ -46,6 +50,8 @@ pub struct SourceFileProperty {
     file_name: JsValue,
     file_id: JsValue,
     is_asm: JsValue,
+    is_standalone: JsValue,
+    files: JsValue,
 }
 
 impl SourceFileProperty {
@@ -55,7 +61,36 @@ impl SourceFileProperty {
             file_name: JsValue::from_str("fileName"),
             file_id: JsValue::from_str("fileId"),
             is_asm: JsValue::from_str("isAsm"),
+            is_standalone: JsValue::from_str("isStandalone"),
+            files: JsValue::from_str("files"),
         }
+    }
+
+    fn load_js_module(&self, object: &JsValue) -> Result<(Vec<PreparedFile>, ModuleKind), ()> {
+        if object.is_undefined() || object.is_null() {
+            return Err(());
+        }
+
+        let is_standalone = Reflect::get(object, &self.is_standalone).map_err(|_| ())?;
+        let files = Reflect::get(object, &self.files).map_err(|_| ())?;
+
+        // Reading files
+        if !js_sys::Array::is_array(&files) {
+            return Err(());
+        }
+        let files: js_sys::Array = files.into();
+        let mut prepared_files = Vec::new();
+        for js_object in files.iter() {
+            prepared_files.push(self.load_js_file(&js_object)?);
+        }
+
+        // Module kind
+        let kind = if is_standalone.is_truthy() {
+            ModuleKind::Standalone
+        } else {
+            ModuleKind::Standard
+        };
+        Ok((prepared_files, kind))
     }
 
     fn load_js_file(&self, object: &JsValue) -> Result<PreparedFile, ()> {
@@ -105,16 +140,8 @@ impl Resolver for JsResolver {
         _err: &mut impl ErrorHandler,
     ) -> Result<(Vec<PreparedFile>, ModuleKind), ()> {
         let path = module.path.join("/");
-        let mut prepared_files = Vec::new();
         let files = resolve_module_from_js(&module.root, &path);
-        if let Some(files) = files {
-            for js_object in files.iter() {
-                prepared_files.push(self.file_properties.load_js_file(&js_object)?);
-            }
-            Ok((prepared_files, ModuleKind::Standard))
-        } else {
-            Err(())
-        }
+        self.file_properties.load_js_module(&files)
     }
 }
 

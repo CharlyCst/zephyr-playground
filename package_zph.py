@@ -15,7 +15,7 @@ if ZEPHYR_PATH is None:
     sys.exit(1)
 
 zephyr_files = {}
-file_id = 1
+file_id = 2 # 0 is reserved, 1 is used by the playground
 prefix_len = len(ZEPHYR_PATH) + 1
 
 
