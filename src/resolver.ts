@@ -1,6 +1,8 @@
 import { modules } from "./zephyr";
 import { code_ref } from "./App";
 
+const VERBOSE = false;
+
 interface IJsModule {
   files: IJsFile[];
   isStandalone: boolean;
@@ -17,7 +19,9 @@ export function resolve_module_from_js(
   root: string,
   path: string
 ): IJsModule | undefined {
-  console.log(`Resolve ${root}/${path}`);
+  if (VERBOSE) {
+    console.log(`Resolve ${root}/${path}`);
+  }
 
   // Base case
   if (root === "playground" && path === "main") {

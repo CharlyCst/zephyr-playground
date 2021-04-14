@@ -20,13 +20,13 @@ extern "C" {
     fn log(s: &str);
 }
 
-#[wasm_bindgen(raw_module = "../lib")]
+#[wasm_bindgen(raw_module = "../resolver")]
 extern "C" {
     fn resolve_module_from_js(root: &str, path: &str) -> JsValue;
 }
 
 #[wasm_bindgen]
-pub fn compile() {
+pub fn compile() -> Option<Vec<u8>> {
     let mut ctx = Ctx::new();
     let mut err = JsHandler::new_no_file();
     let resolver = JsResolver::new();
@@ -34,14 +34,23 @@ pub fn compile() {
         root: String::from("playground"),
         path: vec![String::from("main")],
     };
-    log("Adding module to be compiled");
     if let Err(_) = ctx.add_module(module, &mut err, &resolver) {
         log("Failed adding module");
     }
     match ctx.get_wasm(&mut err, &resolver) {
-        Err(_) => log("Failed compiling to wasm"),
-        Ok(wasm) => log(&format!("Produced {} bytes of wasm", wasm.len())),
+        Err(_) => {
+            log("Failed compiling to wasm");
+            None
+        }
+        Ok(wasm) => {
+            Some(wasm)
+        }
     }
+}
+
+#[wasm_bindgen]
+pub fn get_memory() -> js_sys::WebAssembly::Memory {
+    wasm_bindgen::memory().into()
 }
 
 /// Handles to properties of JS source file objects
