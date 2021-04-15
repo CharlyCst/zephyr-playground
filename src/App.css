@@ -11,12 +11,55 @@
 }
 
 .Editor {
+  height: 100%;
   width: 440px;
-  height: 300px;
   max-width: 100%;
   padding: 10px;
   text-align: left;
   background-color: #333740;
+}
+
+.ConsoleContainer {
+  background-color:#24272c;
+  height: 100%;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.Console {
+  display: flex;
+  width: 100%;
+  font-size: 16px;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: start;
+}
+
+.CompileButton {
+  margin: 0.5rem;
+}
+
+.ConsoleText {
+  padding: 0.1rem 0.2rem;
+}
+
+.TextError {
+  color: #b00020;
+}
+
+.TextOutput {
+  color: #c9c8c8;
+}
+
+.row-container {
+  height: 440px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 }
 
 textarea:focus {

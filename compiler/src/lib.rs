@@ -14,15 +14,22 @@ mod utils;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
+#[allow(dead_code)]
+const KIND_INPUT: usize = 1;
+#[allow(dead_code)]
+const KIND_OUTPUT: usize = 2;
+const KIND_ERROR: usize = 3;
+
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
+    fn console_log(s: &str);
 }
 
 #[wasm_bindgen(raw_module = "../resolver")]
 extern "C" {
     fn resolve_module_from_js(root: &str, path: &str) -> JsValue;
+    fn playground_log(line: &str, kind: usize);
 }
 
 #[wasm_bindgen]
@@ -35,16 +42,14 @@ pub fn compile() -> Option<Vec<u8>> {
         path: vec![String::from("main")],
     };
     if let Err(_) = ctx.add_module(module, &mut err, &resolver) {
-        log("Failed adding module");
+        console_log("Failed adding module");
     }
     match ctx.get_wasm(&mut err, &resolver) {
         Err(_) => {
-            log("Failed compiling to wasm");
+            playground_log("Failed compiling to wasm", KIND_ERROR);
             None
         }
-        Ok(wasm) => {
-            Some(wasm)
-        }
+        Ok(wasm) => Some(wasm),
     }
 }
 
@@ -200,6 +205,6 @@ impl ErrorHandler for JsHandler {
     /// Log an error encountered during the compilation.
     fn log(&mut self, message: String, _level: Level, _loc: Option<Location>) {
         self.has_error = true;
-        log(&message);
+        playground_log(&message, KIND_ERROR);
     }
 }

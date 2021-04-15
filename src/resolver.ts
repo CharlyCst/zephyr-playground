@@ -1,5 +1,5 @@
 import { modules } from "./zephyr";
-import { code_ref } from "./App";
+import { code_ref, log_ref, LineKind } from "./App";
 
 const VERBOSE = false;
 
@@ -13,6 +13,24 @@ interface IJsFile {
   fileName: string;
   fileId: number;
   isAsm: boolean;
+}
+
+export function playground_log(line: string, kind: number) {
+  if (!log_ref) {
+    return;
+  }
+
+  let lineKind = LineKind.output;
+  switch (kind) {
+    case LineKind.input:
+      lineKind = LineKind.input;
+      break;
+    case LineKind.error:
+      lineKind = LineKind.error;
+      break;
+  }
+
+  log_ref(line, lineKind);
 }
 
 export function resolve_module_from_js(
