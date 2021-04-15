@@ -20,5 +20,10 @@ module.exports = function override(config, env) {
     }),
   ]);
 
+  // Set path to relative
+  if (env.production) {
+    config.output.publicPath = "";
+  }
+
   return config;
 };

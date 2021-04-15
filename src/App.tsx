@@ -4,12 +4,31 @@ import { highlight, languages } from "./prism/prism";
 import "./prism/prism.css";
 import "./App.css";
 
-const EXAMPLE = `runtime module playground
+const EXAMPLE = `module playground
 
-expose hello
+expose main
 
-fun hello(): i32 {
-  return 42
+fun main(): i32 {
+    return pow(2, 10)
+}
+
+fun pow(a: i32, b: i32): i32 {
+    if b == 0 {
+        return 1
+    }
+
+    let n = b
+    let x = a
+    let acc = 1
+
+    while n > 1 {
+        if n % 2 == 1 {
+            acc = acc * x
+        }
+        x = x * x
+        n = n / 2
+    }
+    return x * acc
 }
 `;
 

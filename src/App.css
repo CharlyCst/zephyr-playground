@@ -55,7 +55,7 @@
 }
 
 .row-container {
-  height: 440px;
+  height: 540px;
   display: flex;
   flex-direction: row;
   align-items: center;
