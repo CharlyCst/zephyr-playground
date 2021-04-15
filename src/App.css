@@ -11,12 +11,16 @@
 }
 
 .Editor {
-  height: 100%;
   width: 440px;
-  max-width: 100%;
   padding: 10px;
   text-align: left;
+}
+
+.ScrollableEditor {
   background-color: #333740;
+  max-height: 100%;
+  max-width: 100%;
+  overflow: auto;
 }
 
 .ConsoleContainer {
@@ -28,11 +32,19 @@
   align-items: center;
 }
 
+.ConsoleScrollable {
+  display: flex;
+  width: 100%;
+  max-height: 100%;
+  flex: 1;
+  overflow-y: auto;
+}
+
 .Console {
   display: flex;
   width: 100%;
   font-size: 16px;
-  flex: 1;
+  font-size: 16px;
   flex-direction: column;
   align-items: flex-start;
   justify-content: start;

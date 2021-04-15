@@ -105,20 +105,22 @@ function App() {
     <div className="App">
       <h1>Zephyr playground</h1>
       <div className="row-container">
-        <Editor
-          value={code}
-          onValueChange={(code) => {
-            setCode(code);
-            code_ref = code;
-          }}
-          highlight={(code) => highlight(code, (languages as any).zph)}
-          padding={10}
-          style={{
-            fontFamily: '"Fira code", "Fira Mono", monospace',
-            fontSize: 16,
-          }}
-          className="Editor"
-        />
+        <div className="ScrollableEditor">
+          <Editor
+            value={code}
+            onValueChange={(code) => {
+              setCode(code);
+              code_ref = code;
+            }}
+            highlight={(code) => highlight(code, (languages as any).zph)}
+            padding={10}
+            style={{
+              fontFamily: '"Fira code", "Fira Mono", monospace',
+              fontSize: 16,
+            }}
+            className="Editor"
+          />
+        </div>
         <Console
           state={consoleState}
           onCompile={compiler ? () => compile(compiler, log) : undefined}
@@ -155,15 +157,17 @@ function Console(props: IConsoleProps) {
 
   return (
     <div className="ConsoleContainer">
-      <div className="Console">
-        {props.state.lines.map((line) => (
-          <div
-            key={line.id}
-            className={`ConsoleText ${getTextColor(line.kind)}`}
-          >
-            {line.content}
-          </div>
-        ))}
+      <div className="ConsoleScrollable">
+        <div className="Console">
+          {props.state.lines.map((line) => (
+            <div
+              key={line.id}
+              className={`ConsoleText ${getTextColor(line.kind)}`}
+            >
+              {line.content}
+            </div>
+          ))}
+        </div>
       </div>
       <button
         className="CompileButton"
