@@ -1,7 +1,12 @@
+:root {
+  --color-primary: #25f398
+}
+
 .App {
   text-align: center;
   background-color: #282c34;
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -10,23 +15,34 @@
   color: white;
 }
 
+.Banner {
+  background-color: var(--color-primary);
+  color: #282c34;
+  width: 100%;
+}
+
+.Banner h1 {
+  margin: 1rem 0;
+}
+
 .Editor {
-  width: 440px;
+  width: 100%;
   padding: 10px;
   text-align: left;
 }
 
 .ScrollableEditor {
   background-color: #333740;
-  max-height: 100%;
-  max-width: 100%;
+  height: 100%;
+  width: 100%;
+  flex: 2;
   overflow: auto;
 }
 
 .ConsoleContainer {
   background-color:#24272c;
   height: 100%;
-  min-width: 300px;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -51,7 +67,18 @@
 }
 
 .CompileButton {
-  margin: 0.5rem;
+  width: 100%;
+  height: 3rem;
+  font-size: 1.1rem;;
+  font-weight: 700;
+  background-color: var(--color-primary);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.CompileButton:active {
+  opacity: 0.7;
 }
 
 .ConsoleText {
@@ -67,11 +94,13 @@
 }
 
 .row-container {
-  height: 540px;
+  flex: 1;
+  width: 100%;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  overflow: auto;
 }
 
 textarea:focus {

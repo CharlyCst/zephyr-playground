@@ -103,7 +103,9 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Zephyr playground</h1>
+      <div className="Banner">
+        <h1>Zephyr playground</h1>
+      </div>
       <div className="row-container">
         <div className="ScrollableEditor">
           <Editor
@@ -174,7 +176,7 @@ function Console(props: IConsoleProps) {
         onClick={onCompile}
         disabled={!onCompile}
       >
-        Compile
+        Run&nbsp;&nbsp;&nbsp;&nbsp;⟩⟩
       </button>
     </div>
   );
